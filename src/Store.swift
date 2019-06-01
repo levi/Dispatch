@@ -95,7 +95,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
 
   /// Whether this 'store' comply with the action passed as argument.
   public func responds(to action: ActionType) -> Bool {
-    guard let _ = action as? A else {  return false }
+    guard let _ = action as? A else { return false }
     return true
   }
 
@@ -142,7 +142,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   ) -> Operation? {
     guard let action = action as? A else { return nil }
     // Retrieve the operation from the 'Reducer'.
-    let operation = self.reducer.operation(for: action, in: self)
+    guard let operation = self.reducer.operation(for: action, in: self) else { return nil }
     let shouldNotifyObservers = self.reducer.shouldNotifyObservers(for: action, in: self)
     operation.finishBlock = { [weak self] in
       guard let `self` = self else { return }
