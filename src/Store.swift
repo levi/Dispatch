@@ -24,14 +24,14 @@ public func assign<T>(_ value: T, changes: (inout T) -> Void) -> T {
 }
 
 /// Wraps an observer object.
-struct StoreObserver<S: ModelType, A: ActionType> {
+struct StoreObserver<State: ModelType, A: ActionType> {
   // The actual reference to the observer.
   fileprivate weak var ref: AnyObject?
   // The onChange callback that is going to be executed for this observer.
-  fileprivate let closure: Store<S, A>.OnChange
+  fileprivate let closure: Store<State, A>.OnChange
 
   /// Constructs a new observer wrapper object.
-  init(_ ref: AnyObject, closure: @escaping Store<S, A>.OnChange) {
+  init(_ ref: AnyObject, closure: @escaping Store<State, A>.OnChange) {
     self.ref = ref
     self.closure = closure
   }
@@ -53,10 +53,18 @@ public protocol StoreType: class {
 
 
 open class Store<S: ModelType, A: ActionType>: StoreType {
+
+  typealias SubscriptionType = SubscriptionBox<S>
+  
+  /// The current state for the Store.
+  public private(set) var model: S {
+    didSet {
+      oldModel = oldValue
+    }
+  }
+
   /// The block executed whenever the store changes.
   public typealias OnChange = (S, Action<A>?) -> (Void)
-  /// The current state for the Store.
-  public private(set) var model: S
   /// Opaque reference to the model wrapped by this store.
   public var modelRef: ModelType { return model }
   /// The reducer function for this store.
@@ -67,13 +75,54 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   private let stateLock = NSRecursiveLock()
   // The observers currently registered in this store.
   private var observers: [StoreObserver<S, A>] = []
+  
+  private var subscriptions: Set<SubscriptionType> = []
+  
+  private var oldModel: S?
 
   public init(identifier: String, model: S = S(), reducer: Reducer<S, A>) {
     self.identifier = identifier
     self.reducer = reducer
     self.model = model
   }
+  
+  open func subscribe(_ subscriber: AnyObject, onChange: @escaping (S) -> Void) {
+    let subscription = Subscription<S>()
+    let subscriptionBox = SubscriptionBox(
+      subscriber: subscriber,
+      subscription: subscription,
+      onChange: onChange
+    )
+    addSubscription(subscriptionBox)
+  }
 
+  open func subscribe<SelectedState>(
+    _ subscriber: AnyObject,
+    selector: @escaping (Subscription<S>) -> Subscription<SelectedState>,
+    onChange: @escaping (SelectedState) -> Void
+  ) {
+    // Create a subscription for the new subscriber.
+    let subscription = Subscription<S>()
+    // Call the optional transformation closure. This allows callers to modify
+    // the subscription, e.g. in order to subselect parts of the store's state.
+    let selectedSubscription = selector(subscription)
+
+    let subscriptionBox = SubscriptionBox(
+      subscriber: subscriber,
+      subscription: subscription,
+      selectedSubscription: selectedSubscription,
+      onChange: onChange
+    )
+    
+    addSubscription(subscriptionBox)
+  }
+  
+  public func unsubscribe(_ subscriber: AnyObject) {
+    if let index = subscriptions.firstIndex(where: { return $0.subscriber === subscriber }) {
+      subscriptions.remove(at: index)
+    }
+  }
+  
   /// Adds a new observer to the store.
   /// - note: The same observer can be added several times with different *onChange* blocks.
   public func register(observer: AnyObject, onChange: @escaping OnChange) {
@@ -92,7 +141,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
     precondition(Thread.isMainThread)
     observers = observers.filter { $0.ref != nil && $0.ref !== observer }
   }
-
+  
   /// Whether this 'store' comply with the action passed as argument.
   public func responds(to action: ActionType) -> Bool {
     guard let _ = action as? A else { return false }
@@ -100,6 +149,7 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
   }
 
   /// Called from the reducer to update the store state.
+  /// Invoking this will cause subscriptions to be notified.
   public func updateModel(closure: (inout S) -> (Void)) {
     self.stateLock.lock()
     closure(&self.model)
@@ -114,6 +164,27 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
         observer.closure(self.model, action)
       }
     }
+    // Makes sure the observers are notified on the main thread.
+    if Thread.isMainThread {
+      notify()
+    } else {
+      DispatchQueue.main.sync(execute: notify)
+    }
+  }
+  
+  /// Notify the store subscriptions for the change of this store.
+  /// - note: Observers are always notified on the main thread.
+  public func notifySubscriptions(action: Action<A>, oldState: S) {
+    func notify() {
+      subscriptions.forEach {
+        if $0.subscriber == nil {
+          subscriptions.remove($0)
+        } else {
+          $0.newValues(oldState: oldState, newState: model)
+        }
+      }
+    }
+
     // Makes sure the observers are notified on the main thread.
     if Thread.isMainThread {
       notify()
@@ -146,15 +217,23 @@ open class Store<S: ModelType, A: ActionType>: StoreType {
     let shouldNotifyObservers = self.reducer.shouldNotifyObservers(for: action, in: self)
     operation.finishBlock = { [weak self] in
       guard let `self` = self else { return }
-      if shouldNotifyObservers {
+      if shouldNotifyObservers, let oldModel = self.oldModel {
         let time = Date().timeIntervalSince1970
         let action = Action(action: action, model: .finished, lastRun: time,  userInfo: [:])
         self.notifyObservers(action: action)
+
+        self.notifySubscriptions(action: action, oldState: oldModel)
       }
       // Run the completion provided from the 'Dispatcher'.
       completion?()
     }
     return operation
+  }
+  
+  private func addSubscription(_ subscription: SubscriptionBox<S>) {
+    subscriptions.update(with: subscription)
+    // Fire subscription immediately upon initialization
+    subscription.newValues(oldState: nil, newState: model)
   }
 }
 

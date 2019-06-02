@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 50;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -27,6 +27,7 @@
 		AA2ED8286078511078D991181E6B110F /* Middleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9D87A87AD4084004E49DFD700A054C /* Middleware.swift */; };
 		AD74E0C258071175AC6253C4C05FD1AC /* ActionDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1126A9049F4DFF87748B2E2A64A0114 /* ActionDispatch.swift */; };
 		D4CC224C02B0B9455EFB37E720540633 /* Middleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9D87A87AD4084004E49DFD700A054C /* Middleware.swift */; };
+		DB7B4AC122A3151300985BC7 /* Subscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7B4AC022A3151300985BC7 /* Subscription.swift */; };
 		E995048EAA018C98A828052FD0D925D2 /* LoggerMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40853B972FA7EA068F9146EB2B11BC09 /* LoggerMiddleware.swift */; };
 		F402137105DA9B750E428BBAF9EB1670 /* DispatchStore.h in Headers */ = {isa = PBXBuildFile; fileRef = A26B4043B4856C23A46B6F077F04E6C4 /* DispatchStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
@@ -43,6 +44,7 @@
 		A26B4043B4856C23A46B6F077F04E6C4 /* DispatchStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DispatchStore.h; sourceTree = "<group>"; };
 		B1126A9049F4DFF87748B2E2A64A0114 /* ActionDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionDispatch.swift; sourceTree = "<group>"; };
 		C1F0E33E8EC384BAF9B345CC737C501F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DB7B4AC022A3151300985BC7 /* Subscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subscription.swift; sourceTree = "<group>"; };
 		EE9D87A87AD4084004E49DFD700A054C /* Middleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Middleware.swift; sourceTree = "<group>"; };
 		F616CDD6F1504A5F7261D1C38C7810D8 /* Action.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
 		FBF68FB55D0882C572AEA9C895F6C784 /* Operations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operations.swift; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 				3AFCBE1D261E1E0F947F07B562B7AA43 /* Reducer.swift */,
 				858FBCCCDB52356D2137BCC2155554CC /* Serializable.swift */,
 				21DA29A95555FEA4D2C76DA3859EBA1F /* Store.swift */,
+				DB7B4AC022A3151300985BC7 /* Subscription.swift */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -216,6 +219,7 @@
 				AD74E0C258071175AC6253C4C05FD1AC /* ActionDispatch.swift in Sources */,
 				86F3E432990C48834F0A92F54713733A /* DictionaryCodable.swift in Sources */,
 				E995048EAA018C98A828052FD0D925D2 /* LoggerMiddleware.swift in Sources */,
+				DB7B4AC122A3151300985BC7 /* Subscription.swift in Sources */,
 				AA2ED8286078511078D991181E6B110F /* Middleware.swift in Sources */,
 				40F333004EBA775A49E8B1720B0D4ABB /* Operations.swift in Sources */,
 				8F2D6B1538D5E5A9F060E8FC43E6A543 /* PushID.swift in Sources */,
@@ -260,7 +264,10 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				INFOPLIST_FILE = src/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				PLATFORM = "platform macOS";
 				PRODUCT_BUNDLE_IDENTIFIER = io.alexdrone.dispatchStore;
@@ -288,7 +295,10 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				INFOPLIST_FILE = src/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				PLATFORM = "platform macOS";
 				PRODUCT_BUNDLE_IDENTIFIER = io.alexdrone.dispatchStore;
@@ -315,7 +325,10 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				INFOPLIST_FILE = src/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				PLATFORM = "platform iOS";
 				PRODUCT_BUNDLE_IDENTIFIER = io.alexdrone.dispatchStore;
@@ -343,7 +356,10 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				INFOPLIST_FILE = src/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = NO;
 				PLATFORM = "platform iOS";
 				PRODUCT_BUNDLE_IDENTIFIER = io.alexdrone.dispatchStore;
